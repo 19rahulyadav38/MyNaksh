@@ -1,7 +1,8 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   StyleSheet,
+  View,
   type ListRenderItem,
   type ListViewToken,
 } from 'react-native';
@@ -16,11 +17,14 @@ import type { Recommendation } from './types';
 type Props = {
   messageId: string;
   recommendations: Recommendation[];
-  /** Left inset so the first card lines up with the message bubble. */
+  /** Distance from the screen edge to the first card, to line it up with the bubble. */
   inset: number;
 };
 
 const GAP = spacing.sm;
+const STEP = CARD_WIDTH + GAP;
+/** Cards are clipped this far from each screen edge, matching the message rows. */
+const EDGE_GUTTER = spacing.lg;
 /** A card counts as seen once most of it is on screen horizontally. */
 const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 60 };
 
@@ -67,6 +71,20 @@ function RecommendationRailBase({ messageId, recommendations, inset }: Props) {
     [messageId],
   );
 
+  // The rail is clipped to the gutter, so the first card's lead-in is
+  // measured from the gutter rather than the screen edge.
+  const leading = Math.max(0, inset - EDGE_GUTTER);
+
+  // Rest position: first card under the bubble. Every later stop puts a card
+  // flush against the gutter, so no sliver of the previous card shows.
+  const snapToOffsets = useMemo(
+    () =>
+      recommendations.map((_, index) =>
+        index === 0 ? 0 : leading + index * STEP,
+      ),
+    [leading, recommendations],
+  );
+
   const renderItem = useCallback<ListRenderItem<Recommendation>>(
     ({ item }) => (
       <RecommendationCard recommendation={item} onPress={handlePress} />
@@ -75,28 +93,33 @@ function RecommendationRailBase({ messageId, recommendations, inset }: Props) {
   );
 
   return (
-    <FlatList
-      horizontal
-      data={recommendations}
-      keyExtractor={keyExtractor}
-      renderItem={renderItem}
-      viewabilityConfig={VIEWABILITY_CONFIG}
-      onViewableItemsChanged={onViewableItemsChanged}
-      showsHorizontalScrollIndicator={false}
-      snapToInterval={CARD_WIDTH + GAP}
-      decelerationRate="fast"
-      contentContainerStyle={[styles.content, { paddingLeft: inset }]}
-      accessibilityLabel="Recommendations"
-    />
+    <View style={styles.clip}>
+      <FlatList
+        horizontal
+        data={recommendations}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        viewabilityConfig={VIEWABILITY_CONFIG}
+        onViewableItemsChanged={onViewableItemsChanged}
+        showsHorizontalScrollIndicator={false}
+        snapToOffsets={snapToOffsets}
+        decelerationRate="fast"
+        contentContainerStyle={[styles.content, { paddingLeft: leading }]}
+        accessibilityLabel="Recommendations"
+      />
+    </View>
   );
 }
 
 export const RecommendationRail = memo(RecommendationRailBase);
 
 const styles = StyleSheet.create({
+  clip: {
+    marginHorizontal: EDGE_GUTTER,
+    overflow: 'hidden',
+  },
   content: {
     gap: GAP,
-    paddingRight: spacing.lg,
     paddingVertical: spacing.xs,
   },
 });
