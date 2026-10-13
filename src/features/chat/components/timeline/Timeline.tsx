@@ -1,5 +1,9 @@
-import { FlashList, type ListRenderItem } from '@shopify/flash-list';
-import { useMemo, useState } from 'react';
+import {
+  FlashList,
+  type FlashListRef,
+  type ListRenderItem,
+} from '@shopify/flash-list';
+import { useMemo, useState, type Ref } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { spacing } from '../../../../shared/theme';
@@ -7,6 +11,9 @@ import { buildTimeline, type TimelineItem } from '../../model/timeline';
 import { useChatStore } from '../../store/chatStore';
 import { DateSeparator } from './DateSeparator';
 import { MessageRow } from './MessageRow';
+import { TypingIndicator } from './TypingIndicator';
+
+export type TimelineRef = FlashListRef<TimelineItem>;
 
 const keyExtractor = (item: TimelineItem) => item.id;
 
@@ -25,21 +32,28 @@ const renderItem: ListRenderItem<TimelineItem> = ({ item }) =>
     />
   );
 
-/** Start at the bottom; follow new messages only if the user is within 20% of the end. */
+/** Follow new messages only if the user is within 20% of the end. */
 const MAINTAIN_POSITION = {
   startRenderingFromBottom: true,
   autoscrollToBottomThreshold: 0.2,
   animateAutoScrollToBottom: true,
 } as const;
 
-export function Timeline() {
-  const order = useChatStore(state => state.order);
-  const byId = useChatStore(state => state.byId);
+type Props = {
+  ref?: Ref<TimelineRef>;
+};
 
-  // Rows read their own message from the store, so the item list only carries
-  // ids + grouping flags; a feedback change rebuilds this cheap array but no
-  // row re-renders unless its own props or message changed.
-  const items = useMemo(() => buildTimeline(order, byId), [order, byId]);
+export function Timeline({ ref }: Props) {
+  const order = useChatStore(state => state.order);
+  const isAiTyping = useChatStore(state => state.isAiTyping);
+
+  // Grouping depends only on fields that never change after insert (type,
+  // sender, createdAt), so the timeline is rebuilt when `order` changes, not
+  // on every status/feedback edit. Rows subscribe to their own message.
+  const items = useMemo(
+    () => buildTimeline(order, useChatStore.getState().byId),
+    [order],
+  );
 
   // Open at the latest message. Read once: later updates are handled by
   // maintainVisibleContentPosition, not by re-scrolling.
@@ -49,12 +63,14 @@ export function Timeline() {
 
   return (
     <FlashList
+      ref={ref}
       data={items}
       initialScrollIndex={initialScrollIndex}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       getItemType={getItemType}
       maintainVisibleContentPosition={MAINTAIN_POSITION}
+      ListFooterComponent={isAiTyping ? TypingIndicator : null}
       contentContainerStyle={styles.content}
       keyboardDismissMode="interactive"
       keyboardShouldPersistTaps="handled"

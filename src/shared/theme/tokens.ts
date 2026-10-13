@@ -33,6 +33,8 @@ export const colors = {
   primarySurface: palette.indigo100,
   userBubble: palette.indigo500,
   onUserBubble: palette.white,
+  userBubbleQuote: 'rgba(255, 255, 255, 0.18)',
+  backdrop: 'rgba(0, 0, 0, 0.4)',
   aiBubble: palette.white,
   humanBubble: palette.teal100,
   humanAccent: palette.teal700,

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, type ViewStyle } from 'react-native';
 
 import { colors, radii, spacing } from '../../../../shared/theme';
 
@@ -9,6 +9,8 @@ type Props = {
   tone: BubbleTone;
   isFirstInGroup: boolean;
   isLastInGroup: boolean;
+  onLongPress?: () => void;
+  accessibilityLabel?: string;
   children: ReactNode;
 };
 
@@ -22,6 +24,8 @@ export function MessageBubble({
   tone,
   isFirstInGroup,
   isLastInGroup,
+  onLongPress,
+  accessibilityLabel,
   children,
 }: Props) {
   const isOutgoing = tone === 'user';
@@ -36,9 +40,21 @@ export function MessageBubble({
       };
 
   return (
-    <View style={[styles.bubble, toneStyles[tone], groupCorners]}>
+    <Pressable
+      onLongPress={onLongPress}
+      disabled={!onLongPress}
+      delayLongPress={300}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={onLongPress ? 'Long press for actions' : undefined}
+      style={({ pressed }) => [
+        styles.bubble,
+        toneStyles[tone],
+        groupCorners,
+        pressed && styles.pressed,
+      ]}
+    >
       {children}
-    </View>
+    </Pressable>
   );
 }
 
@@ -48,6 +64,9 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+  },
+  pressed: {
+    opacity: 0.75,
   },
 });
 

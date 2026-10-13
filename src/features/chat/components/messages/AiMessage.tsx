@@ -1,8 +1,11 @@
+import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, spacing, typography } from '../../../../shared/theme';
 import type { AiMessage as AiMessageModel } from '../../model/types';
 import { RecommendationRail } from '../../recommendations/RecommendationRail';
+import { useChatStore } from '../../store/chatStore';
+import { FeedbackBar } from '../feedback/FeedbackBar';
 import { Avatar } from './Avatar';
 import { INCOMING_CONTENT_INSET, ROW_PADDING } from './layout';
 import { MessageBubble } from './MessageBubble';
@@ -14,6 +17,12 @@ export function AiMessage({
   isFirstInGroup,
   isLastInGroup,
 }: MessageComponentProps<AiMessageModel>) {
+  const setActionTarget = useChatStore(state => state.setActionTarget);
+  const openActions = useCallback(
+    () => setActionTarget(message.id),
+    [message.id, setActionTarget],
+  );
+
   return (
     <View>
       <View style={styles.row}>
@@ -26,6 +35,8 @@ export function AiMessage({
             tone="ai"
             isFirstInGroup={isFirstInGroup}
             isLastInGroup={isLastInGroup}
+            onLongPress={openActions}
+            accessibilityLabel={`AI Astrologer: ${message.text}`}
           >
             <Text style={styles.text}>{message.text}</Text>
           </MessageBubble>
@@ -42,11 +53,12 @@ export function AiMessage({
         </View>
       ) : null}
 
-      {isLastInGroup ? (
-        <View style={styles.footer}>
+      <View style={styles.footer}>
+        <FeedbackBar messageId={message.id} feedback={message.feedback} />
+        {isLastInGroup ? (
           <MessageTime createdAt={message.createdAt} align="flex-start" />
-        </View>
-      ) : null}
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -75,5 +87,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingLeft: INCOMING_CONTENT_INSET,
+    paddingRight: ROW_PADDING,
+    paddingTop: spacing.sm,
   },
 });
