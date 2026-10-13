@@ -16,8 +16,13 @@ export function Avatar({
   if (glyph === null) {
     return <View style={styles.avatar} />;
   }
+  // Decorative: the sender name next to it is what screen readers announce.
   return (
-    <View style={[styles.avatar, styles.filled, { backgroundColor }]}>
+    <View
+      style={[styles.avatar, styles.filled, { backgroundColor }]}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       <Text style={styles.glyph}>{glyph}</Text>
     </View>
   );

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { create } from 'zustand';
 
@@ -17,6 +17,8 @@ const useToastStore = create<ToastState>()(() => ({ message: null, key: 0 }));
 
 export function showToast(message: string) {
   useToastStore.setState(state => ({ message, key: state.key + 1 }));
+  // `accessibilityLiveRegion` covers Android; iOS needs an explicit announcement.
+  AccessibilityInfo.announceForAccessibility(message);
 }
 
 /** Mount once near the root of a screen. */

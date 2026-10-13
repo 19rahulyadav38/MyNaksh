@@ -7,6 +7,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { colors, radii, spacing, typography } from '../../../../shared/theme';
 
 /** Bubble skeletons hinting at the conversation's shape while it loads. */
@@ -19,6 +21,7 @@ const SKELETON: { align: 'flex-start' | 'flex-end'; width: `${number}%` }[] = [
 ];
 
 export function LoadingState() {
+  const { bottom } = useSafeAreaInsets();
   const pulse = useSharedValue(0.4);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ export function LoadingState() {
 
   return (
     <View
-      style={styles.container}
+      style={[styles.container, { paddingBottom: bottom + spacing.lg }]}
       accessibilityLabel="Loading conversation"
       accessibilityRole="progressbar"
     >

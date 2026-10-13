@@ -110,18 +110,35 @@ export const useChatStore = create<ChatState>()((set, get) => {
     });
   }
 
-  async function requestAiReply(prompt: string) {
+  /**
+   * Bumped on every (re)load. Async work captures it and drops its result if a
+   * newer conversation has been loaded since, so a late reply can't leak into it.
+   */
+  let generation = 0;
+  /** Replies in flight; the typing indicator stays up until all have landed. */
+  let pendingReplies = 0;
+
+  async function requestAiReply(prompt: string, startedIn: number) {
+    pendingReplies += 1;
     set({ isAiTyping: true });
     try {
       const reply = await fetchAiReply(prompt);
-      get().receive([reply]);
+      if (startedIn === generation) {
+        get().receive([reply]);
+      }
+    } catch {
+      // A failed AI reply is non-fatal: the user's message is already delivered.
     } finally {
-      set({ isAiTyping: false });
+      pendingReplies = Math.max(0, pendingReplies - 1);
+      if (startedIn === generation) {
+        set({ isAiTyping: pendingReplies > 0 });
+      }
     }
   }
 
   /** Delivers a user message; safe to call repeatedly for the same message. */
   async function deliver(message: UserMessage) {
+    const startedIn = generation;
     updateMessage(message.id, 'user', m => ({ ...m, status: 'sending' }));
     try {
       await sendMessage({
@@ -132,8 +149,11 @@ export const useChatStore = create<ChatState>()((set, get) => {
       updateMessage(message.id, 'user', m => ({ ...m, status: 'failed' }));
       return;
     }
+    if (startedIn !== generation) {
+      return;
+    }
     updateMessage(message.id, 'user', m => ({ ...m, status: 'sent' }));
-    await requestAiReply(message.text);
+    await requestAiReply(message.text, startedIn);
   }
 
   return {
@@ -147,7 +167,14 @@ export const useChatStore = create<ChatState>()((set, get) => {
       if (get().loadState === 'loading') {
         return;
       }
-      set({ loadState: 'loading', replyTarget: null, actionTargetId: null });
+      generation += 1;
+      pendingReplies = 0;
+      set({
+        loadState: 'loading',
+        isAiTyping: false,
+        replyTarget: null,
+        actionTargetId: null,
+      });
       try {
         const messages = await fetchConversation(options);
         set({ ...upsertMessages(EMPTY, messages), loadState: 'success' });

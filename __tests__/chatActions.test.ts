@@ -192,3 +192,38 @@ describe('feedback', () => {
     expect(state().byId.u1).toBe(user);
   });
 });
+
+describe('lifecycle fencing', () => {
+  it('drops an AI reply that lands after the conversation was reloaded', async () => {
+    mockConfig.replyDelayMs = [30, 30];
+    try {
+      const sending = state().send('How is my career?');
+      // Let the send resolve so the reply is in flight, then reload.
+      await new Promise<void>(resolve => setTimeout(resolve, 5));
+      expect(state().isAiTyping).toBe(true);
+
+      await state().load({ delayMs: 0, scenario: 'empty' });
+      await sending;
+
+      expect(state().order).toEqual([]);
+      expect(state().isAiTyping).toBe(false);
+    } finally {
+      mockConfig.replyDelayMs = [0, 0];
+    }
+  });
+
+  it('keeps the typing indicator until every pending reply has landed', async () => {
+    mockConfig.replyDelayMs = [10, 10];
+    try {
+      const first = state().send('career');
+      await new Promise<void>(resolve => setTimeout(resolve, 5));
+      const second = state().send('love');
+      await first;
+      expect(state().isAiTyping).toBe(true);
+      await second;
+      expect(state().isAiTyping).toBe(false);
+    } finally {
+      mockConfig.replyDelayMs = [0, 0];
+    }
+  });
+});
