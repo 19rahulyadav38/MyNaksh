@@ -103,7 +103,7 @@ export function MessageActionSheet() {
       </Animated.View>
 
       <Animated.View
-        entering={SlideInDown.springify().damping(18)}
+        entering={SlideInDown.duration(200)}
         exiting={SlideOutDown.duration(180)}
         style={[styles.sheet, { paddingBottom: bottom + spacing.md }]}
       >
