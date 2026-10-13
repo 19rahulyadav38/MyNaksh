@@ -13,23 +13,34 @@ const devSink: AnalyticsSink = event => {
   }
 };
 
-let sink: AnalyticsSink = devSink;
+const sinks = new Set<AnalyticsSink>([devSink]);
 
 /**
- * Swap in a real backend (CleverTap, Firebase, an ingestion endpoint) at app
- * start. Feature code only ever calls `track`, so it never changes.
+ * Replace all sinks with one backend (CleverTap, Firebase, an ingestion
+ * endpoint) at app start. Feature code only ever calls `track`.
  */
 export function setAnalyticsSink(next: AnalyticsSink) {
-  sink = next;
+  sinks.clear();
+  sinks.add(next);
+}
+
+/** Adds a listener alongside existing sinks. Returns an unsubscribe function. */
+export function addAnalyticsSink(sink: AnalyticsSink): () => void {
+  sinks.add(sink);
+  return () => {
+    sinks.delete(sink);
+  };
 }
 
 export function track(event: AnalyticsEvent) {
-  try {
-    sink(event);
-  } catch (error) {
-    // Analytics must never break the product.
-    if (__DEV__) {
-      console.warn('[analytics] sink failed', error);
+  for (const sink of sinks) {
+    try {
+      sink(event);
+    } catch (error) {
+      // Analytics must never break the product, or the other sinks.
+      if (__DEV__) {
+        console.warn('[analytics] sink failed', error);
+      }
     }
   }
 }

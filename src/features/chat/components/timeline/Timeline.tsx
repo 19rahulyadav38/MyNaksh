@@ -35,6 +35,8 @@ import { TypingIndicator } from './TypingIndicator';
 
 export type TimelineRef = {
   scrollToEnd: () => void;
+  /** Scrolls to the oldest loaded message, which also triggers history paging. */
+  scrollToTop: () => void;
 };
 
 const keyExtractor = (item: TimelineItem) => item.id;
@@ -120,7 +122,15 @@ export function Timeline({ ref }: Props) {
     setUnseenCount(0);
   }, []);
 
-  useImperativeHandle(ref, () => ({ scrollToEnd }), [scrollToEnd]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      scrollToEnd,
+      scrollToTop: () =>
+        listRef.current?.scrollToOffset({ offset: 0, animated: true }),
+    }),
+    [scrollToEnd],
+  );
 
   // Count incoming messages that landed while the user was reading history.
   // The user's own messages never count: sending always scrolls to the end.

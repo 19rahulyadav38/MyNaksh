@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -11,7 +12,11 @@ import { StyleSheet, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
 import { ToastHost } from '../../../shared/components/Toast';
-import { colors } from '../../../shared/theme';
+import { colors, spacing } from '../../../shared/theme';
+import { TourButton } from '../../tour/TourButton';
+import { TourSheet } from '../../tour/TourSheet';
+import { useTourStore } from '../../tour/tourStore';
+import type { TourContext } from '../../tour/tourSteps';
 import type { LoadScenario } from '../api/chatApi';
 import { MessageActionSheet } from '../components/actions/MessageActionSheet';
 import { Composer } from '../components/composer/Composer';
@@ -26,6 +31,8 @@ import { Timeline, type TimelineRef } from '../components/timeline/Timeline';
 import { useChatStore } from '../store/chatStore';
 
 const TOAST_OFFSET = 96;
+/** Let the conversation render before the tour slides over it. */
+const TOUR_AUTO_OPEN_DELAY_MS = 800;
 
 export function ChatScreen() {
   const navigation = useNavigation();
@@ -39,12 +46,17 @@ export function ChatScreen() {
 
   const [scenario, setScenario] = useState<LoadScenario>('ok');
 
-  const renderDevToggle = useCallback(
+  const renderHeaderRight = useCallback(
     () => (
-      <DevScenarioToggle
-        scenario={scenario}
-        onPress={() => setScenario(nextScenario)}
-      />
+      <View style={styles.headerRight}>
+        {__DEV__ ? (
+          <DevScenarioToggle
+            scenario={scenario}
+            onPress={() => setScenario(nextScenario)}
+          />
+        ) : null}
+        <TourButton />
+      </View>
     ),
     [scenario],
   );
@@ -53,13 +65,30 @@ export function ChatScreen() {
     load({ scenario });
   }, [load, scenario]);
 
-  // Dev-only: cycle load scenarios so every state can be demoed.
+  // Tour entry point, plus (dev builds only) the load-scenario toggle.
   useLayoutEffect(() => {
-    if (!__DEV__) {
+    navigation.setOptions({ headerRight: renderHeaderRight });
+  }, [navigation, renderHeaderRight]);
+
+  // Offer the guided tour once, after the conversation first loads.
+  useEffect(() => {
+    if (loadState !== 'success') {
       return;
     }
-    navigation.setOptions({ headerRight: renderDevToggle });
-  }, [navigation, renderDevToggle]);
+    const timer = setTimeout(
+      () => useTourStore.getState().openOnce(),
+      TOUR_AUTO_OPEN_DELAY_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [loadState]);
+
+  const tourContext = useMemo<TourContext>(
+    () => ({
+      scrollToEnd: () => listRef.current?.scrollToEnd(),
+      scrollToTop: () => listRef.current?.scrollToTop(),
+    }),
+    [],
+  );
 
   // Retrying recovers to the happy path (in dev, the forced error scenario is cleared).
   const retryLoad = useCallback(() => {
@@ -104,6 +133,7 @@ export function ChatScreen() {
       <View style={styles.body}>{renderBody()}</View>
       {loadState === 'success' ? <Composer onSend={handleSend} /> : null}
       <MessageActionSheet />
+      <TourSheet context={tourContext} />
       <ToastHost bottomOffset={TOAST_OFFSET} />
     </KeyboardAvoidingView>
   );
@@ -116,5 +146,10 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
 });
