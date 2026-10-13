@@ -74,9 +74,7 @@ export function ChatScreen() {
     (text: string) => {
       send(text);
       // Your own message always scrolls into view, wherever you were.
-      requestAnimationFrame(() =>
-        listRef.current?.scrollToEnd({ animated: true }),
-      );
+      requestAnimationFrame(() => listRef.current?.scrollToEnd());
     },
     [send],
   );

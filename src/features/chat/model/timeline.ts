@@ -83,3 +83,19 @@ export function buildTimeline(
 
   return items;
 }
+
+/**
+ * Ids added after the previous last message. Prepended history, deletions and
+ * full reloads (previous last no longer present) all return [].
+ */
+export function appendedIds(
+  previous: readonly string[],
+  next: readonly string[],
+): string[] {
+  const previousLast = previous[previous.length - 1];
+  if (previousLast === undefined) {
+    return [];
+  }
+  const index = next.lastIndexOf(previousLast);
+  return index === -1 ? [] : next.slice(index + 1);
+}

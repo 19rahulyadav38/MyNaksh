@@ -93,3 +93,135 @@ export function createSeedConversation(now = Date.now()): unknown[] {
     },
   ];
 }
+
+/**
+ * Earlier sessions, served page by page by `fetchOlderMessages`. Timestamps
+ * sit 2–4 days before the seed so date separators appear as history loads.
+ */
+export function createHistory(now = Date.now()): unknown[] {
+  const day = (daysAgo: number, hour: number, minute = 0) => {
+    const d = new Date(now - daysAgo * 24 * HOUR);
+    d.setHours(hour, minute, 0, 0);
+    return d.getTime();
+  };
+
+  return [
+    {
+      id: 'h1',
+      type: 'system',
+      text: 'Your session with AI Astrologer has started.',
+      createdAt: day(4, 19, 0),
+    },
+    {
+      id: 'h2',
+      type: 'user',
+      text: 'What does my birth chart say about this month?',
+      createdAt: day(4, 19, 1),
+    },
+    {
+      id: 'h3',
+      type: 'ai',
+      text: 'Mercury is direct again, so communication and paperwork should flow more easily from mid-month.',
+      createdAt: day(4, 19, 2),
+      recommendations: [
+        {
+          id: '1',
+          type: 'article',
+          title: 'Mercury Retrograde, Explained',
+          readTimeMinutes: 4,
+        },
+        { id: '2', type: 'tarot', title: 'Monthly Tarot Spread', cardCount: 3 },
+      ],
+    },
+    {
+      id: 'h4',
+      type: 'user',
+      text: 'Any good dates for signing a lease?',
+      createdAt: day(4, 19, 4),
+    },
+    {
+      id: 'h5',
+      type: 'ai',
+      text: 'The 18th and 22nd look auspicious. Avoid Rahu Kaal in the afternoon.',
+      createdAt: day(4, 19, 5),
+    },
+    {
+      id: 'h6',
+      type: 'system',
+      text: 'Session ended.',
+      createdAt: day(4, 19, 20),
+    },
+    {
+      id: 'h7',
+      type: 'system',
+      text: 'Your session with AI Astrologer has started.',
+      createdAt: day(3, 9, 30),
+    },
+    {
+      id: 'h8',
+      type: 'user',
+      text: 'I keep feeling low on energy lately.',
+      createdAt: day(3, 9, 31),
+    },
+    {
+      id: 'h9',
+      type: 'ai',
+      text: 'A weak Sun in your chart can show up as low energy. Morning sunlight and a Sunday remedy can help.',
+      createdAt: day(3, 9, 32),
+      recommendations: [
+        {
+          id: '1',
+          type: 'remedy',
+          title: 'Surya Arghya',
+          day: 'Sunday',
+          durationDays: 21,
+        },
+        {
+          id: '2',
+          type: 'gemstone',
+          title: 'Ruby',
+          subtitle: 'Strengthens the Sun',
+          planet: 'Sun',
+        },
+      ],
+    },
+    {
+      id: 'h10',
+      type: 'system',
+      text: 'Session ended.',
+      createdAt: day(3, 9, 50),
+    },
+    {
+      id: 'h11',
+      type: 'system',
+      text: 'Your session with AI Astrologer has started.',
+      createdAt: day(2, 21, 0),
+    },
+    {
+      id: 'h12',
+      type: 'user',
+      text: 'Is this a good week to start something new?',
+      createdAt: day(2, 21, 1),
+    },
+    {
+      id: 'h13',
+      type: 'ai',
+      text: 'Yes. With the Moon waxing in your 1st house, new beginnings are well supported this week.',
+      createdAt: day(2, 21, 2),
+      recommendations: [
+        {
+          id: '1',
+          type: 'consultation',
+          title: 'Muhurat Consultation',
+          astrologerName: 'Acharya Mehta',
+        },
+      ],
+    },
+    {
+      id: 'h14',
+      type: 'system',
+      text: 'Session ended.',
+      createdAt: day(2, 21, 15),
+    },
+  ];
+}

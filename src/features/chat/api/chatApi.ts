@@ -2,7 +2,7 @@ import { parseMessages } from '../model/parse';
 import type { AiMessage, Message } from '../model/types';
 import { createId } from '../../../shared/utils';
 import { pickAiReply } from './aiReplies';
-import { createSeedConversation } from './mockData';
+import { createHistory, createSeedConversation } from './mockData';
 
 export type LoadScenario = 'ok' | 'empty' | 'error';
 
@@ -16,11 +16,13 @@ type Range = readonly [min: number, max: number];
 /** Tunable mock behaviour. Tests set delays to 0 and pin the failure rate. */
 export const mockConfig: {
   loadDelayMs: number;
+  olderDelayMs: number;
   sendDelayMs: Range;
   replyDelayMs: Range;
   sendFailureRate: number;
 } = {
   loadDelayMs: 1200,
+  olderDelayMs: 900,
   sendDelayMs: [800, 1500],
   replyDelayMs: [1200, 2200],
   sendFailureRate: 0.2,
@@ -44,21 +46,48 @@ function randomIn([min, max]: Range): number {
   return min + Math.random() * (max - min);
 }
 
-/** Mock of `GET /conversations/:id/messages`. */
+export type MessagePage = {
+  /** Oldest first. */
+  messages: Message[];
+  /** Whether anything older than this page exists. */
+  hasOlder: boolean;
+};
+
+/** Mock of `GET /conversations/:id/messages` (latest page). */
 export async function fetchConversation({
   scenario = 'ok',
   delayMs = mockConfig.loadDelayMs,
-}: FetchConversationOptions = {}): Promise<Message[]> {
+}: FetchConversationOptions = {}): Promise<MessagePage> {
   await wait(delayMs);
 
   switch (scenario) {
     case 'error':
       throw new NetworkError('Unable to load conversation.');
     case 'empty':
-      return [];
+      return { messages: [], hasOlder: false };
     case 'ok':
-      return parseMessages(createSeedConversation());
+      return {
+        messages: parseMessages(createSeedConversation()),
+        hasOlder: true,
+      };
   }
+}
+
+export const OLDER_PAGE_SIZE = 6;
+
+/** Mock of `GET /conversations/:id/messages?before=<ts>&limit=<n>` (cursor pagination). */
+export async function fetchOlderMessages(
+  before: number,
+  limit = OLDER_PAGE_SIZE,
+): Promise<MessagePage> {
+  await wait(mockConfig.olderDelayMs);
+  const older = parseMessages(createHistory())
+    .filter(message => message.createdAt < before)
+    .sort((a, b) => a.createdAt - b.createdAt);
+  return {
+    messages: older.slice(-limit),
+    hasOlder: older.length > limit,
+  };
 }
 
 export type SendMessageRequest = { clientId: string; text: string };

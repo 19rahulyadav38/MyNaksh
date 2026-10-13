@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import {
   fetchAiReply,
   fetchConversation,
+  fetchOlderMessages,
   sendMessage,
   type FetchConversationOptions,
 } from '../api/chatApi';
@@ -27,12 +28,17 @@ type MessagesState = {
 
 type ChatState = MessagesState & {
   loadState: LoadState;
+  /** Pagination: more history exists before the oldest loaded message. */
+  hasOlder: boolean;
+  olderState: 'idle' | 'loading' | 'error';
   isAiTyping: boolean;
   replyTarget: ReplyReference | null;
   /** Message whose long-press action sheet is open. */
   actionTargetId: string | null;
 
   load: (options?: FetchConversationOptions) => Promise<void>;
+  /** Prepends the previous page of history. No-op while busy or exhausted. */
+  loadOlder: () => Promise<void>;
   /** Upserts messages by id (idempotent; safe for duplicate deliveries). */
   receive: (messages: Message[]) => void;
   send: (text: string) => Promise<void>;
@@ -173,6 +179,8 @@ export const useChatStore = create<ChatState>()((set, get) => {
   return {
     ...EMPTY,
     loadState: 'idle',
+    hasOlder: false,
+    olderState: 'idle',
     isAiTyping: false,
     replyTarget: null,
     actionTargetId: null,
@@ -185,15 +193,47 @@ export const useChatStore = create<ChatState>()((set, get) => {
       pendingReplies = 0;
       set({
         loadState: 'loading',
+        hasOlder: false,
+        olderState: 'idle',
         isAiTyping: false,
         replyTarget: null,
         actionTargetId: null,
       });
       try {
-        const messages = await fetchConversation(options);
-        set({ ...upsertMessages(EMPTY, messages), loadState: 'success' });
+        const { messages, hasOlder } = await fetchConversation(options);
+        set({
+          ...upsertMessages(EMPTY, messages),
+          hasOlder,
+          loadState: 'success',
+        });
       } catch {
         set({ ...EMPTY, loadState: 'error' });
+      }
+    },
+
+    loadOlder: async () => {
+      const { hasOlder, olderState, loadState, order, byId } = get();
+      const oldest = byId[order[0] ?? ''];
+      if (!hasOlder || olderState === 'loading' || loadState !== 'success') {
+        return;
+      }
+      const startedIn = generation;
+      set({ olderState: 'loading' });
+      try {
+        // Cursor = oldest loaded message; an empty conversation pages from now.
+        const page = await fetchOlderMessages(oldest?.createdAt ?? Date.now());
+        if (startedIn !== generation) {
+          return;
+        }
+        set(state => ({
+          ...upsertMessages(state, page.messages),
+          hasOlder: page.hasOlder,
+          olderState: 'idle',
+        }));
+      } catch {
+        if (startedIn === generation) {
+          set({ olderState: 'error' });
+        }
       }
     },
 
