@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
@@ -19,6 +19,7 @@ type Props = {
 };
 
 const PRESSED_SCALE = 0.96;
+const PRESS_TIMING = { duration: 100 };
 
 /**
  * Shared shell for every recommendation: press feedback, accessibility,
@@ -35,11 +36,11 @@ function RecommendationCardBase({ recommendation, onPress }: Props) {
   }));
 
   const handlePressIn = useCallback(() => {
-    scale.value = withSpring(PRESSED_SCALE);
+    scale.value = withTiming(PRESSED_SCALE, PRESS_TIMING);
   }, [scale]);
 
   const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1);
+    scale.value = withTiming(1, PRESS_TIMING);
   }, [scale]);
 
   const handlePress = useCallback(
