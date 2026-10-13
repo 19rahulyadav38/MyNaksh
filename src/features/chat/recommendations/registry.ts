@@ -5,6 +5,7 @@ import { ArticleCard } from './cards/ArticleCard';
 import { ConsultationCard } from './cards/ConsultationCard';
 import { GemstoneCard } from './cards/GemstoneCard';
 import { PromotionCard } from './cards/PromotionCard';
+import { RemedyCard } from './cards/RemedyCard';
 import { TarotCard } from './cards/TarotCard';
 import type { Recommendation, RecommendationType } from './types';
 
@@ -73,6 +74,13 @@ export const recommendationRegistry: RecommendationRegistry = {
     icon: '🎁',
     accent: accents.saffron,
     defaultCtaLabel: 'Claim offer',
+  },
+  remedy: {
+    Content: RemedyCard,
+    label: 'Remedy',
+    icon: '🪔',
+    accent: accents.rose,
+    defaultCtaLabel: 'View remedy',
   },
 };
 

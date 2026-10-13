@@ -80,7 +80,15 @@ export function createSeedConversation(now = Date.now()): unknown[] {
           title: 'First consultation at ₹1/min',
           subtitle: 'Limited-time offer',
         },
-        { id: '2', type: 'article', title: 'Jupiter Transit 2026 Guide' },
+        {
+          id: '2',
+          type: 'remedy',
+          title: 'Thursday Jupiter Remedy',
+          subtitle: 'Strengthens Jupiter',
+          day: 'Thursday',
+          durationDays: 11,
+        },
+        { id: '3', type: 'article', title: 'Jupiter Transit 2026 Guide' },
       ],
     },
   ];

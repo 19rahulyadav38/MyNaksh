@@ -39,11 +39,19 @@ export type PromotionRecommendation = BaseRecommendation & {
   discountLabel?: string;
 };
 
+export type RemedyRecommendation = BaseRecommendation & {
+  type: 'remedy';
+  /** Day of the week the remedy should be performed on. */
+  day?: string;
+  durationDays?: number;
+};
+
 export type Recommendation =
   | GemstoneRecommendation
   | TarotRecommendation
   | ConsultationRecommendation
   | ArticleRecommendation
-  | PromotionRecommendation;
+  | PromotionRecommendation
+  | RemedyRecommendation;
 
 export type RecommendationType = Recommendation['type'];

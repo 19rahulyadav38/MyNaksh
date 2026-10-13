@@ -53,6 +53,7 @@ export const accents = {
   teal: { foreground: palette.teal700, background: palette.teal100 },
   sky: { foreground: palette.sky500, background: palette.sky100 },
   saffron: { foreground: palette.saffron500, background: palette.saffron100 },
+  rose: { foreground: palette.rose500, background: palette.rose100 },
 } as const;
 
 export type Accent = (typeof accents)[keyof typeof accents];

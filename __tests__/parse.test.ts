@@ -101,3 +101,18 @@ describe('parseMessages', () => {
     expect(m?.createdAt).toBe(42);
   });
 });
+
+describe('remedy recommendations', () => {
+  it('are accepted once registered, with no changes to parsing or rendering code', () => {
+    const [remedy] = parseRecommendations([
+      {
+        id: '1',
+        type: 'remedy',
+        title: 'Thursday Jupiter Remedy',
+        day: 'Thursday',
+      },
+    ]);
+    expect(remedy).toMatchObject({ type: 'remedy', day: 'Thursday' });
+    expect(recommendationRegistry.remedy.label).toBe('Remedy');
+  });
+});
