@@ -9,6 +9,7 @@ import { StyleSheet } from 'react-native';
 import { spacing } from '../../../../shared/theme';
 import { buildTimeline, type TimelineItem } from '../../model/timeline';
 import { useChatStore } from '../../store/chatStore';
+import { useVisibilityStore } from '../../store/visibilityStore';
 import { DateSeparator } from './DateSeparator';
 import { MessageRow } from './MessageRow';
 import { TypingIndicator } from './TypingIndicator';
@@ -31,6 +32,22 @@ const renderItem: ListRenderItem<TimelineItem> = ({ item }) =>
       isLastInGroup={item.isLastInGroup}
     />
   );
+
+/** AI rows with rails are tall; a third on screen is enough to count as seen. */
+const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 30 };
+
+const onViewableItemsChanged = ({
+  viewableItems,
+}: {
+  viewableItems: { item: TimelineItem }[];
+}) =>
+  useVisibilityStore
+    .getState()
+    .setVisibleMessageIds(
+      viewableItems.flatMap(({ item }) =>
+        item.kind === 'message' ? [item.id] : [],
+      ),
+    );
 
 /** Follow new messages only if the user is within 20% of the end. */
 const MAINTAIN_POSITION = {
@@ -70,6 +87,8 @@ export function Timeline({ ref }: Props) {
       keyExtractor={keyExtractor}
       getItemType={getItemType}
       maintainVisibleContentPosition={MAINTAIN_POSITION}
+      viewabilityConfig={VIEWABILITY_CONFIG}
+      onViewableItemsChanged={onViewableItemsChanged}
       ListFooterComponent={isAiTyping ? TypingIndicator : null}
       contentContainerStyle={styles.content}
       keyboardDismissMode="interactive"

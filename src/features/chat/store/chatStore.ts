@@ -15,6 +15,7 @@ import type {
   UserMessage,
 } from '../model/types';
 import { createId } from '../../../shared/utils';
+import { trackAiFeedback } from '../analytics';
 
 export type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -136,6 +137,19 @@ export const useChatStore = create<ChatState>()((set, get) => {
     }
   }
 
+  /** Applies a feedback change and reports it, only if something changed. */
+  function updateFeedback(
+    id: string,
+    update: (message: AiMessage) => AiMessage,
+  ) {
+    const before = get().byId[id];
+    updateMessage(id, 'ai', update);
+    const after = get().byId[id];
+    if (after !== before && after?.type === 'ai' && after.feedback) {
+      trackAiFeedback(id, after.feedback);
+    }
+  }
+
   /** Delivers a user message; safe to call repeatedly for the same message. */
   async function deliver(message: UserMessage) {
     const startedIn = generation;
@@ -250,13 +264,13 @@ export const useChatStore = create<ChatState>()((set, get) => {
     setActionTarget: id => set({ actionTargetId: id }),
 
     setFeedback: (id, value) =>
-      updateMessage(id, 'ai', m => ({
+      updateFeedback(id, m => ({
         ...m,
         feedback: nextFeedback(m.feedback, value),
       })),
 
     toggleFeedbackReason: (id, reason) =>
-      updateMessage(id, 'ai', m => {
+      updateFeedback(id, m => {
         if (m.feedback?.value !== 'dislike') {
           return m;
         }

@@ -17,3 +17,6 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
   getString: jest.fn(() => Promise.resolve('')),
 }));
+
+// Keep test output clean; analytics tests install their own sink.
+require('./src/shared/analytics/analytics').setAnalyticsSink(() => {});
