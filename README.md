@@ -4,7 +4,7 @@ An AI astrology chat screen in React Native + TypeScript. AI replies can carry *
 
 > 📹 **Demo video:** [Google Drive](https://drive.google.com/drive/folders/1vZWBFwRwimtdevzDZIqtltchSb9QdU-h?usp=drive_link)
 >
-> 📦 **Android APK:** [Download v0.0.1](https://github.com/19rahulyadav38/MyNaksh/releases/download/v0.0.1/MyNaksh-v0.0.1.apk) ([release notes](https://github.com/19rahulyadav38/MyNaksh/releases/tag/v0.0.1))
+> 📦 **Android APK:** [Download v0.0.2 for phones](https://github.com/19rahulyadav38/MyNaksh/releases/download/v0.0.2/MyNaksh-0.0.2-arm64-v8a.apk) (15.5 MB, arm64) · [all builds & release notes](https://github.com/19rahulyadav38/MyNaksh/releases/tag/v0.0.2)
 >
 > 🧭 **New here?** The app opens a **guided tour** after the conversation loads. Each step demos one feature live, so you don't need to hunt for anything. Reopen it from the **Tour** button in the header.
 
@@ -57,18 +57,26 @@ npm run typecheck && npm run lint && npm test
 
 ```bash
 npm run build:apk
-# → dist/MyNaksh-<version>-<commit>.apk
 ```
 
-This builds a release APK (JS bundled, no Metro needed) for phones (`arm64-v8a`, `armeabi-v7a`) and x86_64 emulators, and copies it to `dist/` with a versioned name. Share that file directly, or install it on a connected device:
+This builds release APKs (JS bundled, no Metro needed) and copies them to `dist/`:
+
+| File | For | Size |
+|---|---|---|
+| `MyNaksh-<version>-arm64-v8a.apk` | Most phones (recommended) | ~15 MB |
+| `MyNaksh-<version>-armeabi-v7a.apk` | Older 32-bit phones | ~15 MB |
+| `MyNaksh-<version>-x86_64.apk` | Emulators | ~16 MB |
+| `MyNaksh-<version>-universal.apk` | Any device | ~31 MB |
+
+Share a file directly, or install it on a connected device:
 
 ```bash
-adb install -r dist/MyNaksh-*.apk
+adb install -r dist/MyNaksh-<version>-arm64-v8a.apk
 ```
 
-`npm run build:android` runs the plain Gradle release build instead (output: `android/app/build/outputs/apk/release/app-release.apk`).
+Per-ABI splits and compressed native libraries keep the phone build at about a quarter of a single all-ABI APK. The split is opt-in (`-PsplitAbi`), so `npm run android` and dev builds are unaffected. `npm run build:android` runs the plain Gradle release build instead.
 
-> The APK is signed with the template's debug keystore, so it installs by sideloading (allow "Install unknown apps") but isn't meant for the Play Store. In a release build the **DEV** toggle is hidden; the **Tour** button stays.
+> The APKs are signed with the template's debug keystore, so they install by sideloading but aren't meant for the Play Store. On a phone, Chrome may warn that the file "can harm your device": tap **Download anyway**, then allow **Install unknown apps**. In a release build the **DEV** toggle is hidden; the **Tour** button stays.
 
 ### Demo controls
 

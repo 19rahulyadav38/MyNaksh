@@ -82,8 +82,25 @@ android {
         applicationId "com.mynaksh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "0.0.2"
+    }
+    // Per-ABI APKs for sideloading: each phone downloads only its own native
+    // code. Opt-in (-PsplitAbi) so dev builds and `run-android` are unaffected.
+    splits {
+        abi {
+            reset()
+            enable project.hasProperty("splitAbi")
+            universalApk true
+            include "arm64-v8a", "armeabi-v7a", "x86_64"
+        }
+    }
+    packaging {
+        jniLibs {
+            // Store native libraries compressed. The default (uncompressed) suits
+            // Play Store delivery but roughly doubles a sideloaded APK's download.
+            useLegacyPackaging true
+        }
     }
     signingConfigs {
         debug {
