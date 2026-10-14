@@ -8,7 +8,9 @@
     "start": "react-native start",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "jest"
+    "test": "jest",
+    "build:android": "cd android && ./gradlew assembleRelease",
+    "build:apk": "node scripts/build-apk.js"
   },
   "dependencies": {
     "@react-native-clipboard/clipboard": "1.16.3",

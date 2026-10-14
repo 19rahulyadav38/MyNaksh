@@ -51,6 +51,23 @@ npm run typecheck && npm run lint && npm test
 
 > Built and tested on the **Android emulator** (API 36). Pods are installed and the iOS project is the standard RN 0.87 template, but I didn't have full Xcode on my machine, so **iOS hasn't been run**.
 
+### Build a shareable APK
+
+```bash
+npm run build:apk
+# → dist/MyNaksh-<version>-<commit>.apk
+```
+
+This builds a release APK (JS bundled, no Metro needed) for phones (`arm64-v8a`, `armeabi-v7a`) and x86_64 emulators, and copies it to `dist/` with a versioned name. Share that file directly, or install it on a connected device:
+
+```bash
+adb install -r dist/MyNaksh-*.apk
+```
+
+`npm run build:android` runs the plain Gradle release build instead (output: `android/app/build/outputs/apk/release/app-release.apk`).
+
+> The APK is signed with the template's debug keystore, so it installs by sideloading (allow "Install unknown apps") but isn't meant for the Play Store. In a release build the **DEV** toggle is hidden; the **Tour** button stays.
+
 ### Demo controls
 
 | Control | What it does |
