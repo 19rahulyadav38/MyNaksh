@@ -2,7 +2,7 @@
 
 An AI astrology chat screen in React Native + TypeScript. AI replies can carry **recommendation cards** (gemstone, tarot, consultation, article, promotion, remedy), rendered by a **type registry**, so a new experience is added without touching the chat itself.
 
-> 📹 **Screen recording:** _add link here_
+> 📹 **Demo video:** [Google Drive](https://drive.google.com/drive/folders/1vZWBFwRwimtdevzDZIqtltchSb9QdU-h?usp=drive_link)
 >
 > 🧭 **New here?** The app opens a **guided tour** after the conversation loads. Each step demos one feature live, so you don't need to hunt for anything. Reopen it from the **Tour** button in the header.
 
