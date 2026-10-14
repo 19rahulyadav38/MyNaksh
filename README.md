@@ -4,6 +4,8 @@ An AI astrology chat screen in React Native + TypeScript. AI replies can carry *
 
 > 📹 **Demo video:** [Google Drive](https://drive.google.com/drive/folders/1vZWBFwRwimtdevzDZIqtltchSb9QdU-h?usp=drive_link)
 >
+> 📦 **Android APK:** [Download v0.0.1](https://github.com/19rahulyadav38/MyNaksh/releases/download/v0.0.1/MyNaksh-v0.0.1.apk) ([release notes](https://github.com/19rahulyadav38/MyNaksh/releases/tag/v0.0.1))
+>
 > 🧭 **New here?** The app opens a **guided tour** after the conversation loads. Each step demos one feature live, so you don't need to hunt for anything. Reopen it from the **Tour** button in the header.
 
 | Conversation | Guided tour | Long-press actions |
